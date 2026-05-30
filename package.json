@@ -1,0 +1,27 @@
+{
+  "name": "platformy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client": "cd client && npm start",
+    "server": "cd server && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joseph-Cardona/Platformy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Joseph-Cardona/Platformy/issues"
+  },
+  "homepage": "https://github.com/Joseph-Cardona/Platformy#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.0"
+  }
+}
