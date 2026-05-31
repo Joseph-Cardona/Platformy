@@ -1,46 +1,49 @@
-const { Client } = require('pg');
+const { Pool } = require('pg');
 
 const connection = process.env.DATABASE_URL;
 
-const client = new Client ({
+const pool = new Pool ({
   connectionString: connection,
 });
 
 // Setup functions
 async function connectDB () {
   try {
-    await client.connect();
+    await pool.query('SELECT 1');
     console.log('successful connection');
   } catch (err) {
-    console.log('error:');
+    console.log('error:' + err.message);
+  }
+}
+
+async function newMessage (message) {
+  if (!message || typeof message !== 'string' || message.trim() === '') {
+    throw new Error('Message required');
+  }
+  const client = await pool.connect();
+  try {
+    const query = 'INSERT INTO messages (message) VALUES ($1) RETURNING *';
+    const result = await client.query(query, [message.trim()]);
+    return result.rows[0];
+  } catch (err) {
+    console.log('error: ' + err.message)
     throw err;
+  } finally {
+    client.release();
   }
 }
 
 async function disconnectDB () {
   try {
-    await client.end();
+    await pool.end();
     console.log('successful disconnection');
   } catch (err) {
-    console.log('error:');
-    throw err;
-  }
-}
-
-async function newMessage (message) {
-  try {
-    const query = 'INSERT INTO Messages (message) VALUES ($1) RETURNING *';
-    const values = [message];
-    const result = await client.query(query, values);
-    return result.rows[0];
-  } catch (err) {
-    console.log('error:');
-    throw err;
+    console.log('error: ' + err.message);
   }
 }
 
 module.exports = {
-  client,
+  pool,
   connectDB,
   disconnectDB,
   newMessage,

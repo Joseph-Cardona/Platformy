@@ -1,8 +1,8 @@
 const express = require('express');
+require('dotenv').config();
 const app = express();
 const port = 5000;
 
-require('dotenv').config();
 const cors = require('cors');
 const corsOptions = {
   origin: [
