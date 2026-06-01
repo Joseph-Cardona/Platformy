@@ -15,7 +15,8 @@ const corsOptions = {
 };
 const {
   connectDB,
-  newMessage
+  newMessage,
+  newUser
 } = require('./db.js');
 
 app.use(express.json());
@@ -28,6 +29,15 @@ app.get('/', (req, res) => {
 app.post('/api/messages', async (req, res) => {
   try {
     const message = await newMessage(req.body.message);
+    res.status(201).json(message);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const message = await newUser(req.body.username, req.body.email, req.body.password);
     res.status(201).json(message);
   } catch (err) {
     res.status(500).json({ error: err.message });

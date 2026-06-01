@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 
 const connection = process.env.DATABASE_URL;
 
@@ -33,6 +34,30 @@ async function newMessage (message) {
   }
 }
 
+async function newUser (username, email, password) {
+  if (!username || typeof username !== 'string' || username.trim() === '') {
+    throw new Error('Username required');
+  }
+  if (!email || typeof email !== 'string' || email.trim() === '') {
+    throw new Error('Email required');
+  }
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    throw new Error('Password must be 8 characters or longer');
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const client = await pool.connect();
+  try {
+    const query = 'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING *';
+    const result = await client.query(query, [username, email, hashedPassword]);
+    return result.rows[0];
+  } catch (err) {
+    console.log('error: ' + err.message)
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function disconnectDB () {
   try {
     await pool.end();
@@ -47,4 +72,5 @@ module.exports = {
   connectDB,
   disconnectDB,
   newMessage,
+  newUser,
 }

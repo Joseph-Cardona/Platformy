@@ -1,6 +1,8 @@
-import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
+import StartScreen from './components/StartScreen.js';
+import Login from './components/Login.js';
+import Signup from './components/Signup.js';
 
 function App() {
   const [msg, setMsg] = useState('');
@@ -17,10 +19,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Platformy Platformer Social</h1>
-        <button>Login</button>
-        <button>Sign Up</button>
-
+        <StartScreen />
+        <Signup />
         <h2>Message Test</h2>
         <input value={msg} onChange={e => setMsg(e.target.value)} />
         <button onClick={send}>Send</button>
