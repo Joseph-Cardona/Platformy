@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function Signup () {
+function Signup ({signupMade}) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,14 +10,17 @@ function Signup () {
       const msg = await fetch('http://localhost:5000/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, email: email, password: password }),
+        body: JSON.stringify({ username, email, password }),
       });
       const data = await msg.json();
       if (msg.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         setUsername('');
         setEmail('');
         setPassword('');
         alert('NEW ACCOUNT CREATED');
+        signupMade();
       } else {
         alert(data.error || 'SIGNUP FAILED TRY AGAIN');
       }

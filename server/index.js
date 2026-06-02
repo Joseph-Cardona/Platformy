@@ -4,6 +4,7 @@ const app = express();
 const port = 5000;
 
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const corsOptions = {
   origin: [
     'http://localhost:3000'
@@ -37,11 +38,17 @@ app.post('/api/messages', async (req, res) => {
 
 app.post('/api/users', async (req, res) => {
   try {
-    const message = await newUser(req.body.username, req.body.email, req.body.password);
-    if (!result.success) {
-      return res.status(result.status).json({ success: false, error: result.error });
-    }
-    res.status(201).json(message);
+    const user = await newUser(req.body.username, req.body.email, req.body.password); 
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT,
+      { expiresIn: '1d' }
+    );
+    res.status(201).json({
+      success: true,
+      user: { id: user.id, username: user.username, email: user.email },
+      token
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
