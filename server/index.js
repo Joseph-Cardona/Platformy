@@ -38,6 +38,9 @@ app.post('/api/messages', async (req, res) => {
 app.post('/api/users', async (req, res) => {
   try {
     const message = await newUser(req.body.username, req.body.email, req.body.password);
+    if (!result.success) {
+      return res.status(result.status).json({ success: false, error: result.error });
+    }
     res.status(201).json(message);
   } catch (err) {
     res.status(500).json({ error: err.message });

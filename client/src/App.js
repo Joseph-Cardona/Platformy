@@ -5,25 +5,24 @@ import Login from './components/Login.js';
 import Signup from './components/Signup.js';
 
 function App() {
-  const [msg, setMsg] = useState('');
+  const [screen, setScreen] = useState('start');
 
-  const send = () => {
-    fetch('http://localhost:5000/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg }),
-    });
-    setMsg('');
-  };
+  const switchToLogin = () => {
+    setScreen('login');
+  }
+  const switchToSignup = () => {
+    setScreen('signup');
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <StartScreen />
-        <Signup />
-        <h2>Message Test</h2>
-        <input value={msg} onChange={e => setMsg(e.target.value)} />
-        <button onClick={send}>Send</button>
+        {screen === 'start' && (
+          <StartScreen loginClicked={switchToLogin} signupClicked={switchToSignup} />
+        )}
+        
+        {screen === 'login' && <Login />}
+        {screen === 'signup' && <Signup />}
       </header>
     </div>
   );

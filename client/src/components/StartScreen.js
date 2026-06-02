@@ -1,11 +1,11 @@
 import React from 'react';
 
-function StartScreen () {
+function StartScreen ({loginClicked, signupClicked}) {
   return (
     <div>
       <h1>Platformy Platformer Social</h1>
-      <button>Login</button>
-      <button>Signup</button>
+      <button onClick={loginClicked}>Login</button>
+      <button onClick={signupClicked}>Signup</button>
     </div>
   );
 }
