@@ -1,11 +1,17 @@
 import { useState } from 'react';
 
-function Signup ({signupMade}) {
+function Signup () {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const send = async () => { 
+    if (password !== confirmPassword)
+    {
+      alert('BOTH PASSWORDS MUST MATCH');
+      return;
+    }
     try {
       const msg = await fetch('http://localhost:5000/api/users', {
         method: 'POST',
@@ -19,8 +25,8 @@ function Signup ({signupMade}) {
         setUsername('');
         setEmail('');
         setPassword('');
-        alert('NEW ACCOUNT CREATED');
-        signupMade();
+        setConfirmPassword('');
+        window.location.reload();
       } else {
         alert(data.error || 'SIGNUP FAILED TRY AGAIN');
       }
@@ -35,6 +41,7 @@ function Signup ({signupMade}) {
       <input type='text' value={username} placeholder='Username' onChange={e => setUsername(e.target.value)} />
       <input type='email' value={email} placeholder='Email' onChange={e => setEmail(e.target.value)} />
       <input type='password' value={password} placeholder='Password' onChange={e => setPassword(e.target.value)} />
+      <input type='password' value={confirmPassword} placeholder='Confirm Password' onChange={e => setConfirmPassword(e.target.value)} />
       <button onClick={send}>Send</button>
     </div>
   );

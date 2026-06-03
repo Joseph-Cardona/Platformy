@@ -58,6 +58,35 @@ async function newUser (username, email, password) {
   }
 }
 
+async function checkUser (username, password) {
+  if (!username || typeof username !== 'string' || username.trim() === '') {
+    throw new Error('Username required');
+  }
+  if (!password || typeof password !== 'string' || password.trim() === '') {
+    throw new Error('Password required');
+  }
+  const client = await pool.connect();
+  try {
+    const query = 'SELECT * FROM users WHERE username = $1';
+    const result = await client.query(query, [username.trim()]);
+    if (result.rows.length === 0) {
+      throw new Error('Invalid username or password');
+    }
+    const user =  result.rows[0];
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) {
+      throw new Error('Invalid username or password');
+    }
+    return user;
+  } catch (err) {
+    console.log('error: ' + err.message)
+    throw err;
+  } finally {
+    client.release();
+  }
+
+}
+
 async function disconnectDB () {
   try {
     await pool.end();
@@ -73,4 +102,5 @@ module.exports = {
   disconnectDB,
   newMessage,
   newUser,
+  checkUser,
 }

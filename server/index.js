@@ -17,7 +17,8 @@ const corsOptions = {
 const {
   connectDB,
   newMessage,
-  newUser
+  newUser,
+  checkUser
 } = require('./db.js');
 
 app.use(express.json());
@@ -51,6 +52,24 @@ app.post('/api/users', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const user = await checkUser(req.body.username, req.body.password); 
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT,
+      { expiresIn: '1d' }
+    );
+    res.status(200).json({
+      success: true,
+      user: { id: user.id, username: user.username, email: user.email },
+      token
+    });
+  } catch (err) {
+    res.status(401).json({ error: err.message });
   }
 });
 

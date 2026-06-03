@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import StartScreen from './components/StartScreen.js';
 import Login from './components/Login.js';
 import Signup from './components/Signup.js';
+import Dashboard from './components/Dashboard.js';
 
 function App() {
   const [screen, setScreen] = useState('start');
@@ -16,7 +17,7 @@ function App() {
         const parsedUser = JSON.parse(storedUser);
         if (parsedUser) {
           setUser(parsedUser);
-          setScreen('start');
+          setScreen('dashboard');
         }
       } catch (e) {
         localStorage.removeItem('user');
@@ -24,6 +25,12 @@ function App() {
       }
     }
   }, []);
+
+  const signout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.reload();
+  }
 
   const switchToStartScreen = () => {
     setScreen('start');
@@ -38,14 +45,20 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        {user && <p>{user.username}</p>}
+        {user && (
+          <div>
+            <p>{user.username}</p>
+            <button onClick={signout}>Logout</button>
+          </div>
+        )}
         {screen === 'start' && (
           <StartScreen loginClicked={switchToLogin} signupClicked={switchToSignup} />
         )}
         {screen === 'login' && <Login />}
         {screen === 'signup' && (
-          <Signup signupMade={switchToStartScreen} />
+          <Signup />
         )}
+        {screen === 'dashboard' && <Dashboard />}
       </header>
     </div>
   );
