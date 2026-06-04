@@ -4,6 +4,8 @@ import StartScreen from './components/StartScreen.js';
 import Login from './components/Login.js';
 import Signup from './components/Signup.js';
 import Dashboard from './components/Dashboard.js';
+import Editor from './components/Editor.js';
+import Browser from './components/Browser.js';
 
 function App() {
   const [screen, setScreen] = useState('start');
@@ -29,6 +31,8 @@ function App() {
   const signout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    setUser(null);
+    setScreen('start');
     window.location.reload();
   }
 
@@ -40,6 +44,12 @@ function App() {
   }
   const switchToSignup = () => {
     setScreen('signup');
+  }
+  const switchToEditor = () => {
+    setScreen('editor');
+  }
+  const switchToBrowser = () => {
+    setScreen('browser');
   }
 
   return (
@@ -55,10 +65,12 @@ function App() {
           <StartScreen loginClicked={switchToLogin} signupClicked={switchToSignup} />
         )}
         {screen === 'login' && <Login />}
-        {screen === 'signup' && (
-          <Signup />
+        {screen === 'signup' && <Signup />}
+        {screen === 'dashboard' && (
+          <Dashboard editorClicked={switchToEditor} browserClicked={switchToBrowser} />
         )}
-        {screen === 'dashboard' && <Dashboard />}
+        {screen === 'editor' && <Editor />}
+        {screen === 'browser' && <Browser />}
       </header>
     </div>
   );

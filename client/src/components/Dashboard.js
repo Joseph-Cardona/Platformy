@@ -1,11 +1,11 @@
 import React from 'react';
 
-function Dashboard () {
+function Dashboard ({editorClicked, browserClicked}) {
   return (
     <div>
       <h1>Dashboard</h1>
-      <button>Level Editor</button>
-      <button>Level Browser</button>
+      <button onClick={editorClicked}>Level Editor</button>
+      <button onClick={browserClicked}>Level Browser</button>
     </div>
   );
 }
