@@ -36,9 +36,9 @@ function App() {
     window.location.reload();
   }
 
-  const switchToStartScreen = () => {
+  /*const switchToStartScreen = () => {
     setScreen('start');
-  }
+  }*/
   const switchToLogin = () => {
     setScreen('login');
   }
