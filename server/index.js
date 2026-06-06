@@ -18,7 +18,8 @@ const {
   connectDB,
   newMessage,
   newUser,
-  checkUser
+  checkUser,
+  newLevel
 } = require('./db.js');
 
 app.use(express.json());
@@ -37,7 +38,7 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-app.post('/api/users', async (req, res) => {
+app.post('/api/newUser', async (req, res) => {
   try {
     const user = await newUser(req.body.username, req.body.email, req.body.password); 
     const token = jwt.sign(
@@ -70,6 +71,23 @@ app.post('/api/login', async (req, res) => {
     });
   } catch (err) {
     res.status(401).json({ error: err.message });
+  }
+});
+
+app.post('/api/newLevel', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = jwt.verify(authHeader.split(' ')[1], process.env.JWT);
+    const level = await newLevel(token.userId, req.body.title, req.body.map);
+    res.status(201).json({
+      success: true,
+      level
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

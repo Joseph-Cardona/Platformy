@@ -52,6 +52,13 @@ async function newUser (username, email, password) {
     return result.rows[0];
   } catch (err) {
     console.log('error: ' + err.message)
+    if (err.code === '23505') {
+      if (err.constraint === 'users_username_key') {
+        throw new Error('Username taken');
+        throw new Eror('Email is already being used');
+      }
+      throw err;
+    }
     throw err;
   } finally {
     client.release();
@@ -84,7 +91,29 @@ async function checkUser (username, password) {
   } finally {
     client.release();
   }
+}
 
+async function newLevel (user_id, title, map) {
+  if (!user_id || typeof user_id !== 'number') {
+    throw new Error('User ID required');
+  }
+  if (!title || typeof title !== 'string' || title.trim() === '') {
+    throw new Error('Title required');
+  }
+  if (!map || !Array.isArray(map)) {
+    throw new Error('Map required');
+  }
+  const client = await pool.connect();
+  try {
+    const query = 'INSERT INTO levels (user_id, title, map) VALUES ($1, $2, $3::jsonb) RETURNING *';
+    const result = await client.query(query, [user_id, title, JSON.stringify(map)]);
+    return result.rows[0];
+  } catch (err) {
+    console.log('error: ' + err);
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function disconnectDB () {
@@ -103,4 +132,5 @@ module.exports = {
   newMessage,
   newUser,
   checkUser,
+  newLevel,
 }

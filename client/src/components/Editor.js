@@ -48,6 +48,7 @@ function Editor () {
 
     const tileColors = {
       1: [100, 0, 0],
+      2: [128, 90, 64],
     }
 
     const checkerColors = [
@@ -187,11 +188,40 @@ function Editor () {
     }
   }, []);
 
+  const publishLevel = async () => { 
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('ONLY LOGGED IN USERS CAN USE THIS PAGE');
+        return;
+      }
+      const title = 'TEST_TITLE';
+      const msg = await fetch('http://localhost:5000/api/newLevel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization' : 'Bearer ' + token,
+        },
+        body: JSON.stringify({ title, map }),
+      });
+      const data = await msg.json();
+      if (msg.ok) {
+        alert('New level published with ID: ' + data.level.id);
+      } else {
+        alert(data.error || 'LEVEL PUBLISHING FAILED TRY AGAIN');
+      }
+    } catch (err) {
+      alert('NETWORK ERROR: THE SERVER MIGHT NOT BE UP');
+    }
+  }
+
   return (
     <div>
       <h1>Editor</h1>
       <button onClick={() => setBlockType(0)}>Eraser</button>
       <button onClick={() => setBlockType(1)}>Brick</button>
+      <button onClick={() => setBlockType(2)}>Wood</button>
+      <button onClick={publishLevel}>Publish Level</button>
       <br />
       <canvas ref={canvasRef}></canvas>
     </div>
