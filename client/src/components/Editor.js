@@ -6,15 +6,10 @@ const tileSize = 8;
 const gameWidth = 300;
 const gameHeight = 300;
 
-let map = [
-  [1, 1, 1, 1, 1],
-  [0, 1, 0, 1, 0],
-  [0, 0, 0, 0, 0],
-  [1, 0, 0, 0, 1],
-  [0, 1, 1, 1, 0],
-];
-
 function Editor () {
+  const [length, setLength] = useState(5);
+  const [height, setHeight] = useState(5);
+  let map = Array.from({ length: 20 }, () => new Array(20).fill(0));
   const [blockType, setBlockType] = useState(1);
   const blockTypeRef = useRef(blockType);
   useEffect(() => {
@@ -49,6 +44,7 @@ function Editor () {
     const tileColors = {
       1: [100, 0, 0],
       2: [128, 90, 64],
+      3: [60, 60, 60]
     }
 
     const checkerColors = [
@@ -215,13 +211,22 @@ function Editor () {
     }
   }
 
+  const newMapDimensions = () => {
+    setLength(parseInt(prompt('Enter a new length: ')));
+    setHeight(parseInt(prompt('Enter a new height: ')));
+    map = Array.from({ length: height }, () => new Array(length).fill(0));
+    console.log(map);
+  }
+
   return (
     <div>
       <h1>Editor</h1>
       <button onClick={() => setBlockType(0)}>Eraser</button>
       <button onClick={() => setBlockType(1)}>Brick</button>
       <button onClick={() => setBlockType(2)}>Wood</button>
+      <button onClick={() => setBlockType(3)}>Stone</button>
       <button onClick={publishLevel}>Publish Level</button>
+      <button onClick={newMapDimensions}>New Level</button>
       <br />
       <canvas ref={canvasRef}></canvas>
     </div>

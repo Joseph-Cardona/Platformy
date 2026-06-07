@@ -116,6 +116,27 @@ async function newLevel (user_id, title, map) {
   }
 }
 
+async function getLevelById (level_id) {
+  if (!level_id || typeof level_id !== 'number') {
+    throw new Error('Level ID required');
+  }
+  const client = await pool.connect();
+  try {
+    const query = 'SELECT * FROM levels WHERE id = $1';
+    const result = await client.query(query, [level_id]);
+    if (result.rows.length === 0) {
+      throw new Error('Level not found');
+    }
+    const level = result.rows[0];
+    return level;
+  } catch (err) {
+    console.log('error: ' + err.message)
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function disconnectDB () {
   try {
     await pool.end();
@@ -133,4 +154,5 @@ module.exports = {
   newUser,
   checkUser,
   newLevel,
+  getLevelById,
 }

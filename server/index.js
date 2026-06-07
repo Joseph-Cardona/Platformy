@@ -19,7 +19,8 @@ const {
   newMessage,
   newUser,
   checkUser,
-  newLevel
+  newLevel,
+  getLevelById
 } = require('./db.js');
 
 app.use(express.json());
@@ -88,6 +89,18 @@ app.post('/api/newLevel', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/getLevelById', async (req, res) => {
+  try {
+    const user = await getLevelById(req.body.level_id); 
+    res.status(200).json({
+      success: true,
+      level: { id: level.id, user_id: level.user_id, title: level.title, description: level.description, map: level.map, is_published: level.is_published, created_at: level.created_at, updated_at: level.updated_at, user: level.user }
+    });
+  } catch (err) {
+    res.status(401).json({ error: err.message });
   }
 });
 
