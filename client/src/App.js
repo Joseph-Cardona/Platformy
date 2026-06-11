@@ -53,14 +53,16 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <header className="App-header">
-        {user && (
-          <div>
-            <p>{user.username}</p>
-            <button onClick={signout}>Logout</button>
-          </div>
-        )}
+    <div class='App'>
+      <header class='App-header'>
+        <div id='logout-indicator'>
+          {user && (
+            <div>
+              <p>{user.username}</p>
+              <button onClick={signout}>Logout</button>
+            </div>
+          )}
+        </div>
         {screen === 'start' && (
           <StartScreen loginClicked={switchToLogin} signupClicked={switchToSignup} />
         )}

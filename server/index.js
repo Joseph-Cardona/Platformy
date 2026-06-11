@@ -20,7 +20,8 @@ const {
   newUser,
   checkUser,
   newLevel,
-  getLevelById
+  getLevelById,
+  getPublishedLevels
 } = require('./db.js');
 
 app.use(express.json());
@@ -82,7 +83,7 @@ app.post('/api/newLevel', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const token = jwt.verify(authHeader.split(' ')[1], process.env.JWT);
-    const level = await newLevel(token.userId, req.body.title, req.body.map);
+    const level = await newLevel(token.userId, req.body.title, req.body.map, req.body.description || '');
     res.status(201).json({
       success: true,
       level
@@ -101,6 +102,18 @@ app.post('/api/getLevelById', async (req, res) => {
     });
   } catch (err) {
     res.status(401).json({ error: err.message });
+  }
+});
+
+app.get('/api/levels', async (req, res) => {
+  try {
+    const levels = await getPublishedLevels();
+    res.status(200).json({
+      success: true,
+      levels
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -93,7 +93,7 @@ async function checkUser (username, password) {
   }
 }
 
-async function newLevel (user_id, title, map) {
+async function newLevel (user_id, title, map, description='') {
   if (!user_id || typeof user_id !== 'number') {
     throw new Error('User ID required');
   }
@@ -103,10 +103,11 @@ async function newLevel (user_id, title, map) {
   if (!map || !Array.isArray(map)) {
     throw new Error('Map required');
   }
+  const desc = (description && typeof description == 'string' && description.trim() !== '') ? description.trim() : 'No description';
   const client = await pool.connect();
   try {
-    const query = 'INSERT INTO levels (user_id, title, map) VALUES ($1, $2, $3::jsonb) RETURNING *';
-    const result = await client.query(query, [user_id, title, JSON.stringify(map)]);
+    const query = 'INSERT INTO levels (user_id, title, description, map, is_published) VALUES ($1, $2, $3, $4::jsonb, true) RETURNING *';
+    const result = await client.query(query, [user_id, title.trim(), desc, JSON.stringify(map)]);
     return result.rows[0];
   } catch (err) {
     console.log('error: ' + err);
@@ -137,6 +138,20 @@ async function getLevelById (level_id) {
   }
 }
 
+async function getPublishedLevels () {
+  const client = await pool.connect();
+  try {
+    const query = 'select l.*, u.username FROM levels l JOIN users u ON l.user_id = u.id WHERE l.is_published = true ORDER BY l.created_at DESC';
+    const result = await client.query(query);
+    return result.rows;
+  } catch (err) {
+    console.log('error: ' + err.message);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function disconnectDB () {
   try {
     await pool.end();
@@ -155,4 +170,5 @@ module.exports = {
   checkUser,
   newLevel,
   getLevelById,
+  getPublishedLevels,
 }
