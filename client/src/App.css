@@ -3,7 +3,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #344d77;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -13,41 +13,38 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
 .level-post {
-  background-color: gray;
+  background-color: #c55a82;
   border-style: solid;
   border-width: 10px;
   border-radius: 10px;
-  border-color: gray;
+  border-color: #c55a82;
   padding: 10px;
   margin: 20px;
 }
 
 #logout-indicator {
-  background-color: gray;
+  background-color: #c55a82;
   position: absolute;
   left: 10px;
   top: 10px;
 }
 
 button {
-  background-color: white;
-  border-color: white;
-  color: black;
+  background-color: #ffd34b;
+  border-color: #ffd34b;
+  color: white;
   border-style: solid;
   border-radius: 5px;
   padding: 5px;
   margin: 5px;
+  cursor: pointer;
 }
 
 input {
-  background-color: white;
-  border-color: white;
-  color: black;
+  background-color: #ffd34b;
+  border-color: #ffd34b;
+  color: white;
   border-style: solid;
   border-radius: 5px;
   padding: 5px;
