@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import MapPreview from './MapPreview';
 
 function Browser () {
   const [levels, setLevels] = useState([]);
@@ -45,6 +46,7 @@ function Browser () {
   return (
     <div>
       <h1>Level Browser</h1>
+      <br />
       <div>
         {levels.map((level) => (
           <div key={level.id} class='level-post'>
@@ -52,6 +54,9 @@ function Browser () {
             <p>By: {level.username}</p>
             <p>Description: {level.description}</p>
             <p>Published: {new Date(level.created_at).toLocaleDateString()}</p>
+            <div>
+              <MapPreview map={level.map} />
+            </div>
             <button onClick={() => alert('add later')}>Play</button>
           </div>
         ))}

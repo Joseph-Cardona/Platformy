@@ -9,7 +9,7 @@ const gameHeight = 300;
 function Editor () {
   const [length, setLength] = useState(5);
   const [height, setHeight] = useState(5);
-  let map = Array.from({ length: 20 }, () => new Array(20).fill(0));
+  const mapRef = useRef(Array.from({ length: 20}, () => new Array(20).fill(0)));
   const [blockType, setBlockType] = useState(1);
   const blockTypeRef = useRef(blockType);
   useEffect(() => {
@@ -56,7 +56,7 @@ function Editor () {
       return tileValue === 0 ? checkerColors[(r + c) % 2] : tileColors[tileValue] ?? [255, 0, 2];
     }
 
-    const tileObjects = map.map((row, r) => {
+    const tileObjects = mapRef.current.map((row, r) => {
       return row.map((tileValue, c) => {
         return game.add([
           game.rect(tileSize, tileSize),
@@ -87,7 +87,7 @@ function Editor () {
         overlay.destroy();
         overlay = null;
       }
-      if (row < 0 || row >= map.length || col < 0 || col >= map[row].length) {
+      if (row < 0 || row >= mapRef.current.length || col < 0 || col >= mapRef.current[row].length) {
         return;
       }
       overlay = game.add([
@@ -115,50 +115,75 @@ function Editor () {
     }
 
     let dragging = false;
+    let painting = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
     let mouseHasMoved = false;
+    let lastPaintedCol = -1;
+    let lastPaintedRow = -1;
+
+    const paintAtCursor = (e) => {
+      const {x, y} = screenToWorld(e.clientX, e.clientY);
+      const col = Math.floor(x / tileSize);
+      const row = Math.floor(y / tileSize);
+      if (row < 0 || row >= mapRef.current.length || col < 0 || col >= mapRef.current[row].length) {
+        return;
+      }
+      if (col === lastPaintedCol && row === lastPaintedRow) {
+        return;
+      }
+      lastPaintedCol = col;
+      lastPaintedRow = row;
+      mapRef.current[row][col] = blockTypeRef.current;
+      tileObjects[row][col].destroy();
+      tileObjects[row][col] = game.add([
+        game.rect(tileSize, tileSize),
+        game.pos(col * tileSize, row * tileSize),
+        game.color(...getTileColor(mapRef.current[row][col], row, col)),
+      ]);
+    }
 
     const handleMouseDown = (e) => {
-      dragging = true;
-      mouseHasMoved = false;
-      prevMouseX = e.clientX;
-      prevMouseY = e.clientY;
-      canvas.style.cursor = 'grabbing';
+      if (e.shiftKey) {
+        dragging = true;
+        painting = false;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+        canvas.style.cursor = 'grabbing';
+        if (overlay) {
+          overlay.destroy();
+          overlay = null;
+        }
+      } else {
+        dragging = false;
+        painting = true;
+        lastPaintedCol = -1;
+        lastPaintedRow = -1;
+        paintAtCursor(e);
+      }
     }
 
     const handleMouseMove = (e) => {
-      if (!dragging) {
-        return;
+      if (dragging) {
+        mouseHasMoved = true;
+        const distX = e.clientX - prevMouseX;
+        const distY = e.clientY - prevMouseY;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+        const zoomForMove = game.getCamScale().x;
+        const cam = game.getCamPos();
+        game.setCamPos(cam.x - distX / (zoomForMove * gameScale), cam.y - distY / (zoomForMove * gameScale));
+      } else if (painting) {
+        paintAtCursor(e);
       }
-      mouseHasMoved = true;
-      const distX = e.clientX - prevMouseX;
-      const distY = e.clientY - prevMouseY;
-      prevMouseX = e.clientX;
-      prevMouseY = e.clientY;
-      const zoomForMove = game.getCamScale().x;
-      const cam = game.getCamPos();
-      game.setCamPos(cam.x - distX / (zoomForMove * gameScale), cam.y - distY / (zoomForMove * gameScale));
     }
 
     const handleMouseUp = (e) => {
-      if (!mouseHasMoved) {
-        const {x, y} = screenToWorld(e.clientX, e.clientY);
-        const col = Math.floor(x / tileSize);
-        const row = Math.floor(y / tileSize);
-        if (row >= 0 && row < map.length && col >= 0 && col < map[row].length) {
-          const newVal = blockTypeRef.current;
-          map[row][col] = newVal;
-          tileObjects[row][col].destroy();
-          tileObjects[row][col] = game.add([
-            game.rect(tileSize, tileSize),
-            game.pos(col * tileSize, row * tileSize),
-            game.color(...getTileColor(newVal, row, col)),
-          ]);
-        }
-      }
       dragging = false;
       canvas.style.cursor = 'grab';
+      painting = false;
+      lastPaintedCol = -1;
+      lastPaintedRow = -1;
     }
 
     canvas.style.cursor = 'grab';
@@ -199,7 +224,7 @@ function Editor () {
           'Content-Type': 'application/json',
           'Authorization' : 'Bearer ' + token,
         },
-        body: JSON.stringify({ title, description, map }),
+        body: JSON.stringify({ title, description, map: mapRef.current }),
       });
       const data = await msg.json();
       if (msg.ok) {
@@ -215,13 +240,14 @@ function Editor () {
   const newMapDimensions = () => {
     setLength(parseInt(prompt('Enter a new length: ')));
     setHeight(parseInt(prompt('Enter a new height: ')));
-    map = Array.from({ length: height }, () => new Array(length).fill(0));
-    console.log(map);
+    mapRef.current = Array.from({ length: height }, () => new Array(length).fill(0));
+    console.log(mapRef.current);
   }
 
   return (
     <div>
       <h1>Editor</h1>
+      <br />
       <button onClick={() => setBlockType(0)}>Eraser</button>
       <button onClick={() => setBlockType(1)}>Brick</button>
       <button onClick={() => setBlockType(2)}>Wood</button>
