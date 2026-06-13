@@ -21,7 +21,8 @@ const {
   checkUser,
   newLevel,
   getLevelById,
-  getPublishedLevels
+  getPublishedLevels,
+  getUserLevels
 } = require('./db.js');
 
 app.use(express.json());
@@ -95,10 +96,19 @@ app.post('/api/newLevel', async (req, res) => {
 
 app.post('/api/getLevelById', async (req, res) => {
   try {
-    const user = await getLevelById(req.body.level_id); 
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = jwt.verify(authHeader.split(' ')[1], process.env.JWT);
+    const level = await getLevelById(req.bodt.level_id);
+
+    if (level.user_id !== token.userId) {
+      return res.status(403).json({ error: 'Please dont hack into other peoples levels' });
+    }
     res.status(200).json({
       success: true,
-      level: { id: level.id, user_id: level.user_id, title: level.title, description: level.description, map: level.map, is_published: level.is_published, created_at: level.created_at, updated_at: level.updated_at, user: level.user }
+      level
     });
   } catch (err) {
     res.status(401).json({ error: err.message });
@@ -116,6 +126,23 @@ app.get('/api/levels', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get('/api/usersLevels', async (req, res) => {
+  try {
+    const authHeader = req.headders.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer')) {
+      return res.status(401.json({ error: 'Unauthorized' }));
+    }
+    const oken = jwt.verify(authHeader.split(' ')[1], process.env.JWT);
+    const levels = await getUserLevels(token.userId);
+    res.status(200).json({
+      success: true,
+      levels
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+})
 
 async function serverStarter () {
   try {

@@ -152,6 +152,23 @@ async function getPublishedLevels () {
   }
 }
 
+async function getUserLevels (user_id) {
+  if (!user_id || typeof user_id !== 'number') {
+    throw new Error('No User ID');
+  }
+  const client = await pool.connect();
+  try {
+    const query = 'SELECT * FROM levels WHERE user_id = $1 ORDER BY updated_at DESC';
+    const result = await client.query(query, [user_id]);
+    return result.rows;
+  } catch (err) {
+    console.log('error: ' + err.message);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function disconnectDB () {
   try {
     await pool.end();
@@ -171,4 +188,5 @@ module.exports = {
   newLevel,
   getLevelById,
   getPublishedLevels,
+  getUserLevels,
 }

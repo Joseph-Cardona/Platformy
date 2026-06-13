@@ -18,6 +18,28 @@ function Editor () {
 
   const canvasRef = useRef(null);
   const gameRef = useRef(null);
+  const tileObjectsRef = useRef([]);
+  const rebuildMapRef = useRef(null);
+
+  const [showLoadModel, setShowLoadModel] = useState(false);
+  const [myLevels, setMyLevels] = useState([]);
+  const [loadingLevels, setLoadingLevels] = useState(false);
+
+  const tileColors = {
+    1: [100, 0, 0],
+    2: [128, 90, 64],
+    3: [60, 60, 60]
+  }
+
+  const checkerColors = [
+    [200, 200, 200],
+    [255, 255, 255],
+  ];
+
+  const getTileColor = (tileValue, r, c) => {
+    return tileValue === 0 ? checkerColors[(r + c) % 2] : tileColors[tileValue] ?? [255, 0, 2];
+  }
+
   useEffect(() => {
     if (!canvasRef.current || gameRef.current) {
       return;
@@ -41,21 +63,6 @@ function Editor () {
     gameRef.current = game;
     const canvas = canvasRef.current;
 
-    const tileColors = {
-      1: [100, 0, 0],
-      2: [128, 90, 64],
-      3: [60, 60, 60]
-    }
-
-    const checkerColors = [
-      [200, 200, 200],
-      [255, 255, 255],
-    ];
-
-    const getTileColor = (tileValue, r, c) => {
-      return tileValue === 0 ? checkerColors[(r + c) % 2] : tileColors[tileValue] ?? [255, 0, 2];
-    }
-
     const tileObjects = mapRef.current.map((row, r) => {
       return row.map((tileValue, c) => {
         return game.add([
@@ -65,6 +72,7 @@ function Editor () {
         ]);
       });
     });
+    tileObjectsRef.current = tileObjects;
 
     let overlay = null;
 
@@ -196,6 +204,36 @@ function Editor () {
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseleave', handleMouseUp);
 
+    const rebuildMap = (newMapData) => {
+      if (!game) {
+        return;
+      }
+      tileObjectsRef.current.froEach(row => {
+        if (row) row.forEach(tile => {
+          if (tile && typeof tile.destroy === 'function') {
+            tile.destroy();
+          }
+        });
+      });
+
+      mapRef.current = newMapData.map(row => [...row]);
+      setLength(mapRef.current.length);
+      setHeight(mapRef.current[0]?.length);
+
+      const newTiles = mapRef.current.map((row, r) =>
+        row.map((tileValue, c) =>
+          game.add([
+            game.rect(tileSize, tileSize),
+            game.pos(c * tileSize, r * tileSize),
+            game.color(...getTileColor(tileValue, r, c))
+          ])
+        )
+      );
+      tileObjectsRef.current = newTiles;
+      game.setCamPos((mapRef.current.length * tileSize) / 2, (mapRef.current[0]?.length * tileSize) / 2);
+      game.setCamScale(1);
+    }
+
     return () => {
       canvas.removeEventListener('mousemove', handleMouseMoveHover);
       canvas.removeEventListener('mouseleave', handleMouseLeaveHover);
@@ -208,6 +246,70 @@ function Editor () {
       gameRef.current = null;
     }
   }, []);
+
+  const loadLevelIntoEditor = (level) => {
+    if (!level.map || !Array.isArray(level.map)) {
+      if (!level.map || !Array.isArray(level.map)) {
+        alert('Broken level data');
+        return;
+      }
+      if (rebuildMapRef.current) {
+        rebuildMapRef.current(level.map);
+      } else {
+        mapRef.current = level.map;
+        setHeight(level.map.length);
+        setLength(level.map[0]?.length);
+      }
+    }
+  }
+
+  const openLoadModel = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Login first');
+      return;
+    }
+    setShowLoadModel(true);
+    setLoadingLevels(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/usersLevels', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      const data = await res.json;
+      if (data.success) {
+        setMyLevels(data.levels);
+      } else {
+        alert(data.error || 'Levels didnt load');
+      }
+    } catch {
+      alert('Network Error');
+    } finally {
+      setLoadingLevels(false);
+    }
+  }
+
+  const selectLevel = async (levelId) => {
+    setShowLoadModel(false);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:500/api/getLevelById', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify({ level_id: levelId })
+      });
+      const data = await res.json();
+      if (data.success && data.level) {
+        loadLevelIntoEditor(data.level);
+      } else {
+        alert(data.error || 'Level didnt load');
+      }
+    } catch {
+      alert('Loading error');
+    }
+  }
 
   const publishLevel = async () => { 
     try {
@@ -256,8 +358,36 @@ function Editor () {
       <button onClick={newMapDimensions}>New Level</button>
       <br />
       <canvas ref={canvasRef}></canvas>
+      {showLoadModel && (
+        <div>
+          <div>
+            <div>
+              <h2>Load a Level</h2>
+              <button onClick={() => setShowLoadModel(false)}>yup</button>
+            </div>
+            {loadingLevels ? (
+              <p>Loading the levels</p>
+            ) : myLevels.length === 0 ? (
+              <p>You don't have any levels to load</p>
+            ) : (
+              <div>
+                {myLevels.map((level) => (
+                  <div key={level.id} onClick={() => selectLevel(level.id)}>
+                    <h3>{level.title}</h3>
+                    <p>{level.description}</p>
+                    <div>
+                      Size: {(level.map?.[0]?.length)} x {level.map?.length};
+                      <br />
+                      Last updated: {new Date(level.updated_at).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+          )}
+        </div>
+      )}
     </div>
-  );
+  )
 }
 
 export default Editor;
